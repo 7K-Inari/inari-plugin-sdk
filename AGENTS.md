@@ -12,6 +12,7 @@ Stack: Go, hashicorp go-plugin
 
 ## Conventions
 - Conventional Commits; SemVer releases; container images/artifacts cosign-signed (once CI exists).
+- Releases: release-please PR-only mode — merging the Release PR (`chore(main): release x.y.z`) to main tags `vX.Y.Z` and creates the GitHub Release; the Go module is `go get`-able at that tag.
 - Write tests for new behavior; keep changes minimal and focused.
 - Canonical architecture & development plan: https://github.com/7K-Inari/inari-docs/blob/main/docs/architecture/inari-platform-plan.md (section references below point into it).
 
