@@ -1,0 +1,51 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag-release:
+    if: "startsWith(github.event.head_commit.message, 'chore(main): release')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          msg="${{ github.event.head_commit.message }}"
+          version=$(echo "$msg" | grep -oE 'release v?[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "$version" ]; then
+            echo "::error::could not extract version from commit message: $msg"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          tag="v${{ steps.version.outputs.version }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "tag $tag already exists, skipping"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$tag"
+          git push origin "$tag"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="v${{ steps.version.outputs.version }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "release $tag already exists, skipping"
+            exit 0
+          fi
+          gh release create "$tag" --generate-notes --title "$tag"
