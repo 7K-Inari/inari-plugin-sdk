@@ -61,6 +61,11 @@ func (s *grpcService) Invoke(ctx context.Context, req *pluginv1.InvokeRequest) (
 	if err != nil {
 		return &pluginv1.InvokeResponse{Error: ProtoError(err)}, nil
 	}
+	if resp == nil {
+		return &pluginv1.InvokeResponse{
+			Error: ProtoError(Errorf(CodeInternal, "action %q returned a nil response", req.GetAction())),
+		}, nil
+	}
 	return &pluginv1.InvokeResponse{Result: resp.Result}, nil
 }
 
