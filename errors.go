@@ -14,13 +14,13 @@ import (
 type Code int32
 
 const (
-	CodeInvalidArgument   Code = Code(pluginv1.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
-	CodeUnauthenticated   Code = Code(pluginv1.ErrorCode_ERROR_CODE_UNAUTHENTICATED)
-	CodePermissionDenied  Code = Code(pluginv1.ErrorCode_ERROR_CODE_PERMISSION_DENIED)
-	CodeNotFound          Code = Code(pluginv1.ErrorCode_ERROR_CODE_NOT_FOUND)
+	CodeInvalidArgument    Code = Code(pluginv1.ErrorCode_ERROR_CODE_INVALID_ARGUMENT)
+	CodeUnauthenticated    Code = Code(pluginv1.ErrorCode_ERROR_CODE_UNAUTHENTICATED)
+	CodePermissionDenied   Code = Code(pluginv1.ErrorCode_ERROR_CODE_PERMISSION_DENIED)
+	CodeNotFound           Code = Code(pluginv1.ErrorCode_ERROR_CODE_NOT_FOUND)
 	CodeFailedPrecondition Code = Code(pluginv1.ErrorCode_ERROR_CODE_FAILED_PRECONDITION)
-	CodeInternal          Code = Code(pluginv1.ErrorCode_ERROR_CODE_INTERNAL)
-	CodeUnavailable       Code = Code(pluginv1.ErrorCode_ERROR_CODE_UNAVAILABLE)
+	CodeInternal           Code = Code(pluginv1.ErrorCode_ERROR_CODE_INTERNAL)
+	CodeUnavailable        Code = Code(pluginv1.ErrorCode_ERROR_CODE_UNAVAILABLE)
 )
 
 // Error is a structured plugin error carried in the invoke envelope.

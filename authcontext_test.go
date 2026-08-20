@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
+	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 )
 
 func TestAuthContextRoundTrip(t *testing.T) {

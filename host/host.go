@@ -15,9 +15,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/hashicorp/go-plugin"
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
+	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

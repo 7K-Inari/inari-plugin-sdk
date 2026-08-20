@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
+	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
 )
 
 func newService(t *testing.T, p *pluginsdk.Plugin) pluginv1.PluginContractServiceServer {
@@ -206,7 +206,7 @@ type fakeHooks struct {
 	inited, shutdown bool
 }
 
-func (f *fakeHooks) OnInit(context.Context) error    { f.inited = true; return nil }
+func (f *fakeHooks) OnInit(context.Context) error     { f.inited = true; return nil }
 func (f *fakeHooks) OnShutdown(context.Context) error { f.shutdown = true; return nil }
 
 func TestInitRunsHooks(t *testing.T) {

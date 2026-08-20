@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/hashicorp/go-plugin"
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
+	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )
 
