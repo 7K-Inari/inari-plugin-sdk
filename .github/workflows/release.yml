@@ -1,51 +1,40 @@
 name: release
 
+# The release-please action self-detects merged Release PRs (by linked PR,
+# not commit-message heuristics — robust under merge-commit and squash
+# alike) and creates the tag + GitHub Release only then. The versioned
+# artifact is the Go module itself: the tag IS the release.
+
 on:
   push:
     branches: [main]
 
 permissions:
   contents: write
+  pull-requests: write
+  issues: write
 
 jobs:
-  tag-release:
-    if: "startsWith(github.event.head_commit.message, 'chore(main): release')"
+  release:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+      version: ${{ steps.rp.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+      - uses: googleapis/release-please-action@v4
+        id: rp
         with:
-          fetch-depth: 0
+          release-type: go
+          skip-github-pull-request: true
 
-      - name: Extract version
-        id: version
-        run: |
-          msg="${{ github.event.head_commit.message }}"
-          version=$(echo "$msg" | grep -oE 'release v?[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          if [ -z "$version" ]; then
-            echo "::error::could not extract version from commit message: $msg"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Create and push tag
-        run: |
-          tag="v${{ steps.version.outputs.version }}"
-          if git rev-parse "$tag" >/dev/null 2>&1; then
-            echo "tag $tag already exists, skipping"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "$tag"
-          git push origin "$tag"
-
-      - name: Create GitHub Release
+      # Go module proxy sanity: after a tag exists, the module must resolve.
+      - name: Verify module resolvable at tag
+        if: steps.rp.outputs.release_created == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPROXY: "https://proxy.golang.org"
         run: |
-          tag="v${{ steps.version.outputs.version }}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "release $tag already exists, skipping"
-            exit 0
-          fi
-          gh release create "$tag" --generate-notes --title "$tag"
+          sleep 10
+          go mod download "github.com/7K-Inari/inari-plugin-sdk@${{ steps.rp.outputs.tag_name }}" || \
+            echo "::warning::proxy may not have indexed ${{ steps.rp.outputs.tag_name }} yet"
