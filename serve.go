@@ -46,6 +46,10 @@ func ClientPluginSet() plugin.PluginSet {
 // protocol version), gRPC serving of the inari.plugin.v1 contract, lifecycle
 // hooks, and graceful shutdown on SIGTERM/SIGINT. It blocks until the host
 // terminates the connection or a termination signal arrives.
+//
+// Note: ctx cancellation (or a termination signal) only triggers the
+// OnShutdown hook; it does not stop serving or exit the process. Process
+// termination is the host's responsibility in the sidecar model.
 func (p *Plugin) Serve(ctx context.Context) error {
 	if err := InitPlugin(ctx, p); err != nil {
 		return fmt.Errorf("plugin init: %w", err)
