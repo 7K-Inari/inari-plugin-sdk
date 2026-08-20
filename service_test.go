@@ -156,6 +156,23 @@ func TestInvokeMapsHandlerError(t *testing.T) {
 	}
 }
 
+func TestInvokeNilHandlerResponse(t *testing.T) {
+	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"})
+	if err := p.RegisterAction(pluginsdk.Action{
+		Name:    "nilresp",
+		Handler: func(context.Context, *pluginsdk.Request) (*pluginsdk.Response, error) { return nil, nil },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	resp, err := newService(t, p).Invoke(context.Background(), validInvoke("nilresp", nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.GetError().GetCode() != pluginv1.ErrorCode_ERROR_CODE_INTERNAL {
+		t.Fatalf("code = %v, want INTERNAL", resp.GetError().GetCode())
+	}
+}
+
 func TestHealthCheck(t *testing.T) {
 	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"})
 	resp, err := newService(t, p).HealthCheck(context.Background(), &pluginv1.HealthCheckRequest{})
