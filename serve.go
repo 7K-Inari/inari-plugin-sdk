@@ -36,6 +36,12 @@ func (p *Plugin) PluginSet() plugin.PluginSet {
 	return plugin.PluginSet{PluginName: &grpcPlugin{p: p}}
 }
 
+// ClientPluginSet returns the dispense map a host uses to connect to a plugin
+// subprocess. It yields a pluginv1.PluginContractServiceClient.
+func ClientPluginSet() plugin.PluginSet {
+	return plugin.PluginSet{PluginName: &grpcPlugin{}}
+}
+
 // Serve runs the plugin as a go-plugin subprocess: handshake (magic cookie +
 // protocol version), gRPC serving of the inari.plugin.v1 contract, lifecycle
 // hooks, and graceful shutdown on SIGTERM/SIGINT. It blocks until the host
