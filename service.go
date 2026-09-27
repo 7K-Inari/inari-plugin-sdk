@@ -4,7 +4,9 @@ import (
 	"context"
 
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 // apiVersion is the contract version this SDK implements.
@@ -25,7 +27,7 @@ func NewGRPCService(p *Plugin) pluginv1.PluginContractServiceServer {
 func (s *grpcService) GetInfo(_ context.Context, _ *pluginv1.GetInfoRequest) (*pluginv1.GetInfoResponse, error) {
 	declared := s.p.AuthMethods()
 	if err := ValidateAuthMethods(declared); err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	methods := make([]*pluginv1.AuthMethod, 0, len(declared))
 	for _, m := range declared {
