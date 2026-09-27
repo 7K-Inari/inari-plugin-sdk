@@ -68,6 +68,37 @@ The SDK **fails closed**: calls without a principal or tenant never reach your h
 - Treat `AuthContext` as your only source of identity — do not accept user/tenant ids from the payload.
 - Include `ac.PrincipalID` in your own audit/log lines; the control plane correlates by `RequestID`.
 
+## Downstream credentials: auth methods and connections
+
+`AuthContext` is **identity-only** — it never carries credentials. If your extension calls a downstream system as the user (e.g. per-user Git OIDC pass-through), declare the methods you accept and read the credential the control plane injects per call:
+
+```go
+p := pluginsdk.New(info,
+	pluginsdk.WithAuthMethods(
+		pluginsdk.AuthMethod{
+			Type:      pluginsdk.AuthMethodOIDCUser, // oidc-user | service-account | api-key | shared-secret | oidc-sso-session
+			Audience:  "https://git.example.com",    // OIDC token-exchange audience (OIDC types only)
+			Scopes:    []string{"read", "write"},
+			IsDefault: true, // at most one
+		},
+	),
+)
+```
+
+In your handler:
+
+```go
+tok, ok := pluginsdk.DownstreamToken(ctx)          // e.g. "Bearer <token>" — never log it
+method, _ := pluginsdk.ConnectionAuthMethod(ctx)   // which method the host used
+url, _ := pluginsdk.ConnectionConfig(ctx, "server-url") // non-sensitive injected config
+```
+
+Behavior:
+
+- Once you declare methods, the SDK **fails closed**: an unsupported/unknown `X-Inari-Auth-Method` is `FAILED_PRECONDITION`; a missing `X-Inari-Downstream-Authorization` credential is `UNAUTHENTICATED`. An absent method header falls back to your declared default (or first entry).
+- If you declare **no** methods, nothing changes: the host applies its default (`oidc-user`) and the SDK does not enforce anything.
+- Credential values are never logged by the SDK; `Connection.String()` redacts the token. Keep it that way in your own logging.
+
 ## Declaring capabilities
 
 Each action is declared with a name, description, and optional JSON Schemas:

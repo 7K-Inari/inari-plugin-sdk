@@ -7,6 +7,7 @@ import (
 
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
 	pluginsdk "github.com/7K-Inari/inari-plugin-sdk"
+	"google.golang.org/grpc/metadata"
 )
 
 func newService(t *testing.T, p *pluginsdk.Plugin) pluginv1.PluginContractServiceServer {
@@ -228,5 +229,130 @@ func TestShutdownRunsHooks(t *testing.T) {
 	}
 	if !h.shutdown {
 		t.Fatal("OnShutdown not called")
+	}
+}
+
+func TestGetInfoAuthMethods(t *testing.T) {
+	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"},
+		pluginsdk.WithAuthMethods(
+			pluginsdk.AuthMethod{Type: pluginsdk.AuthMethodOIDCUser, Audience: "https://git.example.com", IsDefault: true},
+			pluginsdk.AuthMethod{Type: pluginsdk.AuthMethodServiceAccount},
+		))
+	resp, err := newService(t, p).GetInfo(context.Background(), &pluginv1.GetInfoRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ms := resp.GetAuthMethods()
+	if len(ms) != 2 {
+		t.Fatalf("auth methods = %+v", ms)
+	}
+	if ms[0].GetType() != pluginv1.AuthMethod_TYPE_OIDC_USER || !ms[0].GetIsDefault() || ms[0].GetAudience() != "https://git.example.com" {
+		t.Fatalf("method[0] = %+v", ms[0])
+	}
+	if ms[1].GetType() != pluginv1.AuthMethod_TYPE_SERVICE_ACCOUNT {
+		t.Fatalf("method[1] = %+v", ms[1])
+	}
+}
+
+func TestGetInfoNoAuthMethodsBackwardCompat(t *testing.T) {
+	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"})
+	resp, err := newService(t, p).GetInfo(context.Background(), &pluginv1.GetInfoRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.GetAuthMethods()) != 0 {
+		t.Fatalf("auth methods = %+v, want empty (host default oidc-user applies)", resp.GetAuthMethods())
+	}
+}
+
+func TestGetInfoInvalidAuthMethods(t *testing.T) {
+	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"},
+		pluginsdk.WithAuthMethods(pluginsdk.AuthMethod{}))
+	if _, err := newService(t, p).GetInfo(context.Background(), &pluginv1.GetInfoRequest{}); err == nil {
+		t.Fatal("expected error for invalid auth method declaration")
+	}
+}
+
+func invokeWithMD(t *testing.T, p *pluginsdk.Plugin, md metadata.MD) *pluginv1.InvokeResponse {
+	t.Helper()
+	if err := p.RegisterAction(pluginsdk.Action{Name: "probe", Handler: okHandler}); err != nil {
+		t.Fatal(err)
+	}
+	ctx := metadata.NewIncomingContext(context.Background(), md)
+	resp, err := newService(t, p).Invoke(ctx, validInvoke("probe", nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return resp
+}
+
+func declaredPlugin() *pluginsdk.Plugin {
+	return pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"},
+		pluginsdk.WithAuthMethods(
+			pluginsdk.AuthMethod{Type: pluginsdk.AuthMethodOIDCUser, IsDefault: true},
+			pluginsdk.AuthMethod{Type: pluginsdk.AuthMethodServiceAccount},
+		))
+}
+
+func TestInvokeDeclaredMethodWithCredential(t *testing.T) {
+	resp := invokeWithMD(t, declaredPlugin(), metadata.Pairs(
+		"x-inari-auth-method", "service-account",
+		"x-inari-downstream-authorization", "Bearer tok",
+	))
+	if resp.GetError() != nil {
+		t.Fatalf("unexpected error: %+v", resp.GetError())
+	}
+}
+
+func TestInvokeDeclaredMissingMethodHeaderFallsBackToDefault(t *testing.T) {
+	resp := invokeWithMD(t, declaredPlugin(), metadata.Pairs(
+		"x-inari-downstream-authorization", "Bearer tok",
+	))
+	if resp.GetError() != nil {
+		t.Fatalf("unexpected error: %+v", resp.GetError())
+	}
+}
+
+func TestInvokeDeclaredUnsupportedMethod(t *testing.T) {
+	resp := invokeWithMD(t, declaredPlugin(), metadata.Pairs(
+		"x-inari-auth-method", "api-key",
+		"x-inari-downstream-authorization", "Bearer tok",
+	))
+	if resp.GetError().GetCode() != pluginv1.ErrorCode_ERROR_CODE_FAILED_PRECONDITION {
+		t.Fatalf("code = %v, want FAILED_PRECONDITION", resp.GetError().GetCode())
+	}
+}
+
+func TestInvokeDeclaredUnknownMethodName(t *testing.T) {
+	resp := invokeWithMD(t, declaredPlugin(), metadata.Pairs(
+		"x-inari-auth-method", "bogus",
+		"x-inari-downstream-authorization", "Bearer tok",
+	))
+	if resp.GetError().GetCode() != pluginv1.ErrorCode_ERROR_CODE_FAILED_PRECONDITION {
+		t.Fatalf("code = %v, want FAILED_PRECONDITION", resp.GetError().GetCode())
+	}
+}
+
+func TestInvokeDeclaredMissingCredential(t *testing.T) {
+	resp := invokeWithMD(t, declaredPlugin(), metadata.Pairs(
+		"x-inari-auth-method", "oidc-user",
+	))
+	if resp.GetError().GetCode() != pluginv1.ErrorCode_ERROR_CODE_UNAUTHENTICATED {
+		t.Fatalf("code = %v, want UNAUTHENTICATED", resp.GetError().GetCode())
+	}
+}
+
+func TestInvokeUndeclaredPluginPassesThrough(t *testing.T) {
+	p := pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"})
+	for _, md := range []metadata.MD{
+		nil,
+		metadata.Pairs("x-inari-auth-method", "bogus"),
+		metadata.Pairs("x-inari-downstream-authorization", "Bearer tok"),
+	} {
+		if resp := invokeWithMD(t, p, md); resp.GetError() != nil {
+			t.Fatalf("undeclared plugin must not enforce: %+v", resp.GetError())
+		}
+		// fresh plugin per iteration: RegisterAction rejects duplicates
+		p = pluginsdk.New(pluginsdk.Info{Name: "x", Version: "0.0.1"})
 	}
 }

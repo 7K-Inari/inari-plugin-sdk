@@ -4,6 +4,7 @@ import (
 	"context"
 
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
+	"google.golang.org/grpc/metadata"
 )
 
 // apiVersion is the contract version this SDK implements.
@@ -22,12 +23,21 @@ func NewGRPCService(p *Plugin) pluginv1.PluginContractServiceServer {
 }
 
 func (s *grpcService) GetInfo(_ context.Context, _ *pluginv1.GetInfoRequest) (*pluginv1.GetInfoResponse, error) {
+	declared := s.p.AuthMethods()
+	if err := ValidateAuthMethods(declared); err != nil {
+		return nil, err
+	}
+	methods := make([]*pluginv1.AuthMethod, 0, len(declared))
+	for _, m := range declared {
+		methods = append(methods, m.Proto())
+	}
 	return &pluginv1.GetInfoResponse{
 		Info: &pluginv1.PluginInfo{
 			Name:       s.p.info.Name,
 			Version:    s.p.info.Version,
 			ApiVersion: apiVersion,
 		},
+		AuthMethods: methods,
 	}, nil
 }
 
@@ -56,7 +66,17 @@ func (s *grpcService) Invoke(ctx context.Context, req *pluginv1.InvokeRequest) (
 			Error: ProtoError(Errorf(CodeNotFound, "action %q not found", req.GetAction())),
 		}, nil
 	}
+	md, _ := metadata.FromIncomingContext(ctx)
+	conn := connectionFromMetadata(md)
+	if declared := s.p.AuthMethods(); len(declared) > 0 {
+		method, err := conn.resolveAgainst(declared)
+		if err != nil {
+			return &pluginv1.InvokeResponse{Error: ProtoError(err)}, nil
+		}
+		conn.AuthMethod = method
+	}
 	ctx = ContextWithAuth(ctx, ac)
+	ctx = ContextWithConnection(ctx, conn)
 	resp, err := action.Handler(ctx, &Request{Payload: req.GetPayload(), RequestID: req.GetRequestId()})
 	if err != nil {
 		return &pluginv1.InvokeResponse{Error: ProtoError(err)}, nil
