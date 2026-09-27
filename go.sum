@@ -1,5 +1,5 @@
-github.com/7K-Inari/inari-api v0.2.1-0.20260820113107-12b34d04d2ca h1:pOmNnrEiqDA1tY4BHeq2dWL+Qmdr3yLSMXndNUY315Y=
-github.com/7K-Inari/inari-api v0.2.1-0.20260820113107-12b34d04d2ca/go.mod h1:5fJ0SdB958/957cFCNlgS1O3I5INr+nQVTmT2GylSEc=
+github.com/7K-Inari/inari-api v0.6.1-0.20260926220016-52ea5837ecac h1:rXt8atDUHOq1VT7VgFnSbKqMoEsc7E2R9x1MA9K4Vbg=
+github.com/7K-Inari/inari-api v0.6.1-0.20260926220016-52ea5837ecac/go.mod h1:+74y2AihE0BCqM4L2G6AIjN+pu5C88YhW8wFKf7JmmA=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

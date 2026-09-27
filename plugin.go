@@ -58,11 +58,12 @@ type HealthChecker interface {
 // Plugin is an Inari backend extension: identity, declared actions, and
 // optional lifecycle hooks.
 type Plugin struct {
-	info    Info
-	hooks   Hooks
-	health  HealthChecker
-	mu      sync.RWMutex
-	actions map[string]Action
+	info        Info
+	hooks       Hooks
+	health      HealthChecker
+	authMethods []AuthMethod
+	mu          sync.RWMutex
+	actions     map[string]Action
 }
 
 // Option configures a Plugin.
@@ -76,6 +77,19 @@ func WithHooks(h Hooks) Option {
 // WithHealthChecker attaches a health checker used by the HealthCheck RPC.
 func WithHealthChecker(h HealthChecker) Option {
 	return func(p *Plugin) { p.health = h }
+}
+
+// WithAuthMethods declares the downstream authentication methods the plugin
+// accepts (§5.8). The declaration is surfaced in GetInfo; at invoke time the
+// SDK enforces it fail-closed against the host-injected X-Inari-Auth-Method /
+// X-Inari-Downstream-Authorization metadata. Plugins that declare no methods
+// keep the legacy behavior: the host applies its default (oidc-user) and no
+// enforcement happens plugin-side. Invalid declarations are rejected by
+// GetInfo; use ValidateAuthMethods to check ahead of time.
+func WithAuthMethods(methods ...AuthMethod) Option {
+	return func(p *Plugin) {
+		p.authMethods = append([]AuthMethod{}, methods...)
+	}
 }
 
 // New creates a plugin with the given identity.
@@ -121,4 +135,12 @@ func (p *Plugin) action(name string) (Action, bool) {
 	defer p.mu.RUnlock()
 	a, ok := p.actions[name]
 	return a, ok
+}
+
+// AuthMethods returns the declared downstream auth methods in declaration
+// order (empty when the plugin declares none).
+func (p *Plugin) AuthMethods() []AuthMethod {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return append([]AuthMethod{}, p.authMethods...)
 }
