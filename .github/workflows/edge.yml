@@ -1,0 +1,62 @@
+name: edge
+
+# Per-merge edge releases: every push to main cuts a GitHub prerelease
+# v<pending>-edge.<shortsha> — the v-prefixed tag doubles as a Go module
+# ref, so consumers can `go get github.com/7K-Inari/inari-plugin-sdk@<tag>`.
+# This repo runs release-please in simple mode (no manifest), so the pending
+# version falls back to latest stable tag + patch. Skipped on release
+# merges — release.yml covers that commit.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: edge-main
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Skip on release merges
+        id: gate
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --pretty=%s)"
+          parent2=""
+          if [ "$(git rev-list --parents -n1 HEAD | wc -w)" -gt 2 ]; then
+            parent2="$(git log -1 --pretty=%s HEAD^2)"
+          fi
+          if echo "$msg" | grep -qiE '^chore(\(.*\))?: release' \
+             || echo "$parent2" | grep -qiE '^chore(\(.*\))?: release'; then
+            echo "release merge detected ($msg) — skipping edge"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  prerelease:
+    needs: gate
+    if: needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create edge prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          edge="$(scripts/resolve-edge-version.sh .)"
+          gh release create "v${edge}" \
+            --prerelease \
+            --title "edge ${edge}" \
+            --notes "Edge build from ${GITHUB_SHA}. Go: \`go get github.com/7K-Inari/inari-plugin-sdk@v${edge}\`. Superseded by the next stable vX.Y.Z release."
