@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.2.0...v1.3.0) (2026-09-29)
+
+
+### Features
+
+* declare auth methods and consume host-injected downstream credentials ([7f531e4](https://github.com/7K-Inari/inari-plugin-sdk/commit/7f531e4246e98e33d57d5b64164da23b48d8107f))
+* declare auth methods and consume host-injected downstream credentials ([ac29146](https://github.com/7K-Inari/inari-plugin-sdk/commit/ac291461d1e80bcdee6868874789f64adf988133))
+* **release:** per-merge edge releases (vX.Y.Z-&lt;sha&gt; + moving edge channel) ([#13](https://github.com/7K-Inari/inari-plugin-sdk/issues/13)) ([9414ff0](https://github.com/7K-Inari/inari-plugin-sdk/commit/9414ff019b758c3a21aa8cbc7d866b1b2c834e38))
+
+
+### Bug Fixes
+
+* return INVALID_ARGUMENT status for invalid auth method declarations ([27635f0](https://github.com/7K-Inari/inari-plugin-sdk/commit/27635f008c6ecea01f4351c04f6ca100bb089210))
+
 ## [1.2.0](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.1.0...v1.2.0) (2026-08-21)
 
 
