@@ -57,11 +57,15 @@ jobs:
         run: |
           set -euo pipefail
           edge="$(scripts/resolve-edge-version.sh .)"
-          gh release create "v${edge}" \
-            --prerelease \
-            --target "$GITHUB_SHA" \
-            --title "edge ${edge}" \
-            --notes "Edge build from ${GITHUB_SHA}. Go: \`go get github.com/7K-Inari/inari-plugin-sdk@v${edge}\`. Superseded by the next stable vX.Y.Z release."
+          if gh release view "v${edge}" > /dev/null 2>&1; then
+            echo "prerelease v${edge} already exists — skipping create (workflow rerun)"
+          else
+            gh release create "v${edge}" \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title "edge ${edge}" \
+              --notes "Edge build from ${GITHUB_SHA}. Go: \`go get github.com/7K-Inari/inari-plugin-sdk@v${edge}\`. Superseded by the next stable vX.Y.Z release."
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f edge "$GITHUB_SHA"
