@@ -1,0 +1,80 @@
+name: edge
+
+# Per-merge edge releases: every push to main cuts a GitHub prerelease
+# v<pending>-<shortsha> — the v-prefixed tag doubles as a Go module
+# ref, so consumers can `go get github.com/7K-Inari/inari-plugin-sdk@<tag>`.
+# This repo runs release-please in simple mode (no manifest), so the pending
+# version falls back to latest stable tag + patch. Skipped on release
+# merges — release.yml covers that commit.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: edge-main
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Skip on release merges
+        id: gate
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --pretty=%s)"
+          parent2=""
+          if [ "$(git rev-list --parents -n1 HEAD | wc -w)" -gt 2 ]; then
+            parent2="$(git log -1 --pretty=%s HEAD^2)"
+          fi
+          if echo "$msg" | grep -qiE '^chore(\(.*\))?: release' \
+             || echo "$parent2" | grep -qiE '^chore(\(.*\))?: release'; then
+            echo "release merge detected ($msg) — skipping edge"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  prerelease:
+    needs: gate
+    if: needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create edge prerelease + move the edge channel tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          edge="$(scripts/resolve-edge-version.sh .)"
+          if gh release view "v${edge}" > /dev/null 2>&1; then
+            echo "prerelease v${edge} already exists — skipping create (workflow rerun)"
+          else
+            gh release create "v${edge}" \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title "edge ${edge}" \
+              --notes "Edge build from ${GITHUB_SHA}. Go: \`go get github.com/7K-Inari/inari-plugin-sdk@v${edge}\`. Superseded by the next stable vX.Y.Z release."
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f edge "$GITHUB_SHA"
+          git push -f origin refs/tags/edge
+          if gh release view edge > /dev/null 2>&1; then
+            gh release edit edge --prerelease --title "edge (v${edge})" \
+              --notes "Latest edge build: \`v${edge}\` (${GITHUB_SHA})."
+          else
+            gh release create edge --prerelease --target "$GITHUB_SHA" \
+              --title "edge (v${edge})" \
+              --notes "Latest edge build: \`v${edge}\` (${GITHUB_SHA})."
+          fi
