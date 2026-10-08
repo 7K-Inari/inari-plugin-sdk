@@ -3,7 +3,7 @@ module github.com/7K-Inari/inari-plugin-sdk
 go 1.26.3
 
 require (
-	github.com/7K-Inari/inari-api v0.6.1-0.20261008052711-490fc94aa5c7
+	github.com/7K-Inari/inari-api v0.6.1-0.20261008193724-f311c232c21e
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	google.golang.org/grpc v1.84.0
@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
