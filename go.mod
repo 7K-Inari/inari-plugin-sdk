@@ -3,7 +3,7 @@ module github.com/7K-Inari/inari-plugin-sdk
 go 1.26.3
 
 require (
-	github.com/7K-Inari/inari-api v0.7.0-d1dc5a2
+	github.com/7K-Inari/inari-api v0.7.0-f0bdbad
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	google.golang.org/grpc v1.85.0
