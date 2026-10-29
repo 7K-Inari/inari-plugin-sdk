@@ -44,6 +44,8 @@ github.com/7K-Inari/inari-api v0.7.0-c2fef8b h1:FzB5CXoQd3WZhXeZMjTdV8jwTxRMxgEN
 github.com/7K-Inari/inari-api v0.7.0-c2fef8b/go.mod h1:KdruVohnlIWp5ouIK0o/I3z1DIqrF3AgPawds7PXs0c=
 github.com/7K-Inari/inari-api v0.7.0-d1dc5a2 h1:vtzrQ/8mjce1Q2GjUDfjuEqc4v1FuB6mjV5IW/TA8zo=
 github.com/7K-Inari/inari-api v0.7.0-d1dc5a2/go.mod h1:KdruVohnlIWp5ouIK0o/I3z1DIqrF3AgPawds7PXs0c=
+github.com/7K-Inari/inari-api v0.7.0-f0bdbad h1:i3g0D1MHUD6iQw2V8kyhSp0lB4+dpi41lybnS8px0WA=
+github.com/7K-Inari/inari-api v0.7.0-f0bdbad/go.mod h1:zvM4oYFSntc8y2stEehqz4UsS4AzyZuKxLL8gpbV3YM=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
