@@ -99,6 +99,29 @@ Behavior:
 - If you declare **no** methods, nothing changes: the host applies its default (`oidc-user`) and the SDK does not enforce anything.
 - Credential values are never logged by the SDK; `Connection.String()` redacts the token. Keep it that way in your own logging.
 
+## Imperative operations on a tenant cluster
+
+Use `host/agentgateway` for imperative operations that must travel over the existing agent stream. Construct it with the control-plane HTTP(S) base URL and a standard OAuth client-credentials token source for the extension's dedicated identity:
+
+```go
+tokens := (&clientcredentials.Config{
+	ClientID: extensionClientID, ClientSecret: extensionClientSecret, TokenURL: issuerTokenURL,
+}).TokenSource(ctx)
+gateway, err := agentgateway.NewClient(agentgateway.Config{
+	BaseURL: controlPlaneURL, TokenSource: tokens,
+})
+```
+
+Then invoke from a registered action:
+
+```go
+ack, err := gateway.InvokeAction(ctx, clusterID, &agentv1.InvokeAction{Action: "sync"})
+```
+
+The client derives `x-inari-tenant` from the invocation's `AuthContext` and `x-inari-cluster` from the validated cluster argument. Never read the tenant from caller input. If the current connection carries a downstream credential, the SDK strips its `Bearer` scheme and forwards it only on the in-memory gateway hop. The control plane mints the persisted vault reference. Do not set `InvokeAction.user_credential_ref` yourself; the SDK rejects it.
+
+The generated `inari.extensions.v1.AgentGateway` Connect contract lives in `inari-api`. Extension authors do not need a gRPC connection, service descriptor, custom protojson codec, or metadata constants. The client never auto-retries an imperative operation. A disconnected agent returns `CodeUnavailable`; a failed acknowledgement still requires inspecting `ack.Result`.
+
 ## Declaring capabilities
 
 Each action is declared with a name, description, and optional JSON Schemas:
@@ -125,6 +148,27 @@ return nil, pluginsdk.Errorf(pluginsdk.CodeNotFound, "resource %q not found", id
 ```
 
 Codes (`INVALID_ARGUMENT`, `UNAUTHENTICATED`, `PERMISSION_DENIED`, `NOT_FOUND`, `FAILED_PRECONDITION`, `INTERNAL`, `UNAVAILABLE`) travel on the wire as `PluginError`; anything else maps to `INTERNAL`. Use specific codes — the control plane renders them into actionable user feedback.
+
+## Downstream re-authentication and HTTP adapters
+
+When a downstream SSO session is missing or expired, return a typed error with the provider key declared in your auth method:
+
+```go
+return nil, pluginsdk.ReauthError("argocd")
+```
+
+This is `UNAUTHENTICATED` with `details.code=reauth_required` and `details.provider=argocd`. Its fixed message never includes downstream response bodies or credential material.
+
+If you expose the plugin through an HTTP action adapter, convert the wire error and use the shared writer:
+
+```go
+if pe := resp.GetError(); pe != nil {
+	pluginsdk.WriteHTTPError(w, pluginsdk.ErrorFromProto(pe))
+	return
+}
+```
+
+The result is `401`, `X-Inari-Reauth: argocd`, and `{"detail":"re-authentication required","code":"reauth_required"}`. The writer also owns the standard 400/401/403/404/412/500/503 mapping and JSON encoding. Invalid provider configuration returns `500` without a provider header, preventing an unsafe redirect. Do not hand-roll re-auth details, response headers, status switches, or JSON escaping.
 
 ## Lifecycle, health, and logging
 
