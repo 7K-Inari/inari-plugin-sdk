@@ -3,10 +3,13 @@ module github.com/7K-Inari/inari-plugin-sdk
 go 1.26.3
 
 require (
-	github.com/7K-Inari/inari-api v0.7.0-f0bdbad
+	connectrpc.com/connect/v2 v2.0.2
+	github.com/7K-Inari/inari-api v0.7.0-f0bdbad.0.20261113203746-9a6851832000
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
+	golang.org/x/oauth2 v0.37.0
 	google.golang.org/grpc v1.85.0
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
@@ -20,5 +23,4 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260817212433-ac3dfec99bb1 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 )

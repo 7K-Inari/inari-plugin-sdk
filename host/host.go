@@ -141,11 +141,7 @@ func (c *Client) Invoke(ctx context.Context, action string, ac pluginsdk.AuthCon
 		return nil, c.wrapErr(err)
 	}
 	if pe := resp.GetError(); pe != nil {
-		return nil, &pluginsdk.Error{
-			Code:    pluginsdk.Code(pe.GetCode()),
-			Message: pe.GetMessage(),
-			Details: pe.GetDetails(),
-		}
+		return nil, pluginsdk.ErrorFromProto(pe)
 	}
 	return &pluginsdk.Response{Result: resp.GetResult()}, nil
 }

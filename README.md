@@ -50,6 +50,56 @@ func TestMyPlugin(t *testing.T) {
 
 See `testkit/example_test.go` for a complete third-party-style test and `host/` for the reference subprocess launcher (handshake, checksum pinning, crash detection) used by the integration tests.
 
+## Imperative tenant operations
+
+Use the typed `host/agentgateway` client when an action must run through the tenant agent. The client owns the versioned Connect contract, per-extension authentication, tenant/cluster metadata, and downstream-credential forwarding; extensions never dial a private gateway or copy its proto.
+
+```go
+import (
+  "github.com/7K-Inari/inari-plugin-sdk/host/agentgateway"
+  "golang.org/x/oauth2/clientcredentials"
+)
+
+tokens := (&clientcredentials.Config{
+  ClientID: extensionClientID,
+  ClientSecret: extensionClientSecret,
+  TokenURL: issuerTokenURL,
+}).TokenSource(ctx)
+gateway, err := agentgateway.NewClient(agentgateway.Config{
+  BaseURL: controlPlaneURL,
+  TokenSource: tokens,
+})
+```
+
+Inside a registered action, pass the invocation `ctx`, a validated cluster ID, and an `agentv1.InvokeAction`. The SDK derives the tenant from `AuthContext` and any downstream credential from the current connection. It rejects self-asserted credential references, never mutates the caller's command, and does not retry imperative operations. A disconnected agent fails closed with `CodeUnavailable`.
+
+```go
+ack, err := gateway.InvokeAction(ctx, clusterID, &agentv1.InvokeAction{Action: "sync"})
+```
+
+See [`inari-api/docs/extension-gateway.md`](https://github.com/7K-Inari/inari-api/blob/main/docs/extension-gateway.md) for routing, security, and error semantics.
+
+## Re-authentication and HTTP errors
+
+Return `pluginsdk.ReauthError("argocd")` when the downstream session is missing or expired. It produces `UNAUTHENTICATED` with `details{code: reauth_required, provider: argocd}` and a fixed message that cannot leak provider responses. HTTP adapters use the shared mapper instead of hand-written status, header, or JSON logic:
+
+```go
+if pe := resp.GetError(); pe != nil {
+  pluginsdk.WriteHTTPError(w, pluginsdk.ErrorFromProto(pe))
+  return
+}
+```
+
+For a valid provider this emits `401`, `X-Inari-Reauth: argocd`, and `{"detail":"re-authentication required","code":"reauth_required"}`. Invalid provider configuration fails closed with `500`; other SDK error codes use the same canonical HTTP status table.
+
+To prove a clean public consumer, set exact public versions and run:
+
+```sh
+INARI_API_VERSION=vX.Y.Z INARI_PLUGIN_SDK_VERSION=vX.Y.Z ./scripts/verify-public-consumer.sh
+```
+
+The script creates a temporary module with no `replace`, workspace, vendor, or relative checkout dependency, then exercises tenant invocation and re-auth through the public APIs.
+
 ## Lifecycle
 
 - `pluginsdk.WithHooks(...)` — `OnInit` before serving, `OnShutdown` on SIGTERM/SIGINT.
