@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0-ffb897b](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.2.1-ffb897b...v1.3.0-ffb897b) (2026-11-14)
+
+
+### Features
+
+* **host:** add typed agent gateway and re-auth helpers ([#46](https://github.com/7K-Inari/inari-plugin-sdk/issues/46)) ([3158f0d](https://github.com/7K-Inari/inari-plugin-sdk/commit/3158f0ddaadb9796ee3ddf3cda95bb4ce8c96cf0))
+
 ## [1.2.0](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.1.0...v1.2.0) (2026-08-21)
 
 
