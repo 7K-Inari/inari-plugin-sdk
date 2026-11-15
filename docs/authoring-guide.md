@@ -122,6 +122,22 @@ The client derives `x-inari-tenant` from the invocation's `AuthContext` and `x-i
 
 The generated `inari.extensions.v1.AgentGateway` Connect contract lives in `inari-api`. Extension authors do not need a gRPC connection, service descriptor, custom protojson codec, or metadata constants. The client never auto-retries an imperative operation. A disconnected agent returns `CodeUnavailable`; a failed acknowledgement still requires inspecting `ack.Result`.
 
+## Declaring the backend contract
+
+Every backend extension declares its implemented protobuf contract in `extension.yaml`:
+
+```yaml
+spec:
+  contracts:
+    backend: ["inari.plugin.v1"]
+```
+
+The declaration is validated at registration before identity or registry side effects. A server accepting multiple major versions admits a manifest when at least one declared contract intersects its supported set, but the handshake still checks the actual `PluginInfo.api_version`; declaration never selects or downgrades the runtime contract.
+
+During the initial optional deprecation phase, old manifests without contracts produce warnings and remain usable. After the published minimum 90-day/two-stable-release window, declarations become required and missing metadata returns 422 `contract_required`. Within v1, protobuf evolution is additive and buf breaking checks remain mandatory. A future v2 uses an explicit v1+v2 overlap window; this SDK currently serves only v1.
+
+Use `pluginsdk.ParseBackendDeclaration` in authoring tests and `pluginsdk.SupportedBackendContracts()` when checking SDK support. Neither helper infers a declaration from runtime state.
+
 ## Declaring capabilities
 
 Each action is declared with a name, description, and optional JSON Schemas:
@@ -203,7 +219,7 @@ func TestResize(t *testing.T) {
 }
 ```
 
-`testkit.Run` serves your plugin in-process over the real gRPC contract, so handler, auth-context, and error-mapping behavior are all exercised. See `testkit/example_test.go` in the SDK repo for a complete example; `examples/greeter` plus `host/host_test.go` show the end-to-end subprocess path (handshake, checksum, crash isolation).
+`testkit.Run` serves your plugin in-process over the real gRPC contract, so handler, auth-context, and error-mapping behavior are all exercised. Add `testkit.RequireBackendContract(t, ctx, client, "inari.plugin.v1")` to assert declaration/testkit agreement alongside `Info`, `Capabilities`, `Invoke`, and `Health`. See `testkit/example_test.go` in the SDK repo for a complete example; `examples/greeter` plus `host/host_test.go` show the end-to-end subprocess path (handshake, checksum, crash isolation).
 
 ## Shipping
 

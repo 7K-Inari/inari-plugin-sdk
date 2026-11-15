@@ -1,0 +1,15 @@
+apiVersion: inari.io/v1alpha1
+kind: Extension
+metadata:
+  name: public-consumer
+spec:
+  version: 0.1.0
+  kinds: [backend]
+  backend:
+    image: ghcr.io/7k-inari/public-consumer
+    digestPinning: required
+    actions: [sync, reauth]
+  contracts:
+    backend: [inari.plugin.v1]
+  permissions:
+    - extensions:invoke:public-consumer
