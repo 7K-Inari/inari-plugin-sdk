@@ -9,6 +9,7 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/inari-public-consumer.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 cp "$ROOT/testdata/public-consumer/consumer_test.go" "$TMP/consumer_test.go"
+cp "$ROOT/testdata/public-consumer/extension.yaml" "$TMP/extension.yaml"
 cd "$TMP"
 export GOWORK=off
 go mod init example.com/inari-public-consumer

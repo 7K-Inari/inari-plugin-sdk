@@ -46,6 +46,7 @@ func TestThirdPartyPlugin(t *testing.T) {
 	if info.GetName() != "upper" || info.GetApiVersion() != "inari.plugin.v1" {
 		t.Fatalf("info = %+v", info)
 	}
+	testkit.RequireBackendContract(t, ctx, client, "inari.plugin.v1")
 
 	actions, err := client.Capabilities(ctx)
 	if err != nil {

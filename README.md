@@ -36,6 +36,10 @@ func main() {
 }
 ```
 
+## Backend contract declaration
+
+Declare `spec.contracts.backend: ["inari.plugin.v1"]` in `extension.yaml`. Registration validates this declaration, while the handshake remains a runtime safety net. Legacy manifests are accepted with warnings during the documented optional phase and become required after the published deprecation window. See `docs/authoring-guide.md` for skew policy and `testkit.RequireBackendContract` for consumer assertions.
+
 ## Testing with the testkit
 
 ```go

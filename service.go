@@ -3,14 +3,12 @@ package pluginsdk
 import (
 	"context"
 
+	extensionv1 "github.com/7K-Inari/inari-api/contract/extension/v1"
 	pluginv1 "github.com/7K-Inari/inari-api/gen/go/inari/plugin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
-
-// apiVersion is the contract version this SDK implements.
-const apiVersion = "inari.plugin.v1"
 
 // grpcService adapts a Plugin to the pluginv1 gRPC contract.
 type grpcService struct {
@@ -37,7 +35,7 @@ func (s *grpcService) GetInfo(_ context.Context, _ *pluginv1.GetInfoRequest) (*p
 		Info: &pluginv1.PluginInfo{
 			Name:       s.p.info.Name,
 			Version:    s.p.info.Version,
-			ApiVersion: apiVersion,
+			ApiVersion: extensionv1.BackendContractV1,
 		},
 		AuthMethods: methods,
 	}, nil

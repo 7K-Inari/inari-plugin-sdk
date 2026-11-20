@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -48,6 +49,17 @@ func (h *publicGatewayHandler) InvokeAction(ctx context.Context, req *agentv1.In
 		return nil, h.err
 	}
 	return &agentv1.CommandAck{CommandId: req.GetCommandId(), Result: agentv1.CommandResult_COMMAND_RESULT_APPLIED}, nil
+}
+
+func TestPublicManifestDeclaration(t *testing.T) {
+	raw, err := os.ReadFile("extension.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	contracts, err := pluginsdk.ParseBackendDeclaration(raw)
+	if err != nil || len(contracts) != 1 || contracts[0] != "inari.plugin.v1" {
+		t.Fatalf("backend contracts = %v, %v", contracts, err)
+	}
 }
 
 func TestPublicTenantInvocationAndReauth(t *testing.T) {
