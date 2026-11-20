@@ -1,7 +1,7 @@
 connectrpc.com/connect/v2 v2.0.2 h1:PoPDmOlhc46elsuCdKCKTxjNBb3HJlKF+s/sP2oucPw=
 connectrpc.com/connect/v2 v2.0.2/go.mod h1:N32OLrstcPUzkykFynnefFro3+xzSdOrZlK2jHmS/xo=
-github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261115205726-5fe74760b5fc h1:9lZoLSWII9dMAHGzKuFBZt4K44s6nXYbNn47/P8+CTI=
-github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261115205726-5fe74760b5fc/go.mod h1:gQA00slDZZakEdxsCMWTSQSFhBdA0dRXKhPH10QO0WM=
+github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261120100719-b154bc4443cb h1:2707mHgIIcw54T0+T/3VdFF8zd2DhrxSZZEuIb7muQs=
+github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261120100719-b154bc4443cb/go.mod h1:gQA00slDZZakEdxsCMWTSQSFhBdA0dRXKhPH10QO0WM=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
