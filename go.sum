@@ -4,6 +4,8 @@ github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261120100719-b154bc4443cb h1:27
 github.com/7K-Inari/inari-api v0.8.0-5ee597d.0.20261120100719-b154bc4443cb/go.mod h1:gQA00slDZZakEdxsCMWTSQSFhBdA0dRXKhPH10QO0WM=
 github.com/7K-Inari/inari-api v0.8.0-b5e7e0b h1:KbhzSVMnxauhZUq8S5xajSpdtVjLIcWNeCdxW+jvMjg=
 github.com/7K-Inari/inari-api v0.8.0-b5e7e0b/go.mod h1:gQA00slDZZakEdxsCMWTSQSFhBdA0dRXKhPH10QO0WM=
+github.com/7K-Inari/inari-api v0.8.0-f224904 h1:EGwmqJvZ03GXRYzlKUCq1Yh5x0+dDWH1ZcDTjs/MjEM=
+github.com/7K-Inari/inari-api v0.8.0-f224904/go.mod h1:gQA00slDZZakEdxsCMWTSQSFhBdA0dRXKhPH10QO0WM=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
