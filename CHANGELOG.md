@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0-ffb897b](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.3.0-ffb897b...v1.4.0-ffb897b) (2026-11-21)
+
+
+### Features
+
+* **contracts:** add backend declaration test support ([1f1c955](https://github.com/7K-Inari/inari-plugin-sdk/commit/1f1c955ab973d44d2a6e8f6db2e2ed6e24b114b4))
+* **contracts:** add backend declaration test support ([6442459](https://github.com/7K-Inari/inari-plugin-sdk/commit/6442459b81426ecbf3ce650fc983a0ae414f37d4))
+
 ## [1.3.0-ffb897b](https://github.com/7K-Inari/inari-plugin-sdk/compare/v1.2.1-ffb897b...v1.3.0-ffb897b) (2026-11-14)
 
 
