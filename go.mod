@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	connectrpc.com/connect/v2 v2.0.2
-	github.com/7K-Inari/inari-api v0.8.0-b5e7e0b
+	github.com/7K-Inari/inari-api v0.8.0-f224904
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	golang.org/x/oauth2 v0.38.0
